@@ -14,15 +14,15 @@ A proposal for discussion.
 - Concretely: use a small set of transforms that make data more compressible; apply whole-tile gzip, brotli or zstd
   as the only general-purpose compression stage (terminal/leaf encoding); and omit encodings that provide no gain, or a negative gain, after compression (FastPFOR, bit-packing, FSST, rANS, most forms of RLE, ...).
 
+
 ## Motivation
 
-- **The network is usually the bottleneck, not decompression.** Across the cited German and US operator results, typical mobile download speed is roughly 100 Mbit/s (12 MB/s) ([Opensignal Germany](https://insights.opensignal.com/reports/2025/11/germany/mobile-network-experience), [Opensignal USA](https://insights.opensignal.com/reports/2026/07/usa/mobile-network-experience)). A single CPU core decompresses gzip or brotli at roughly 400 MB/s and zstd at over 1,000 MB/s ([zstd benchmark](https://github.com/facebook/zstd#benchmarks), [lzbench](https://github.com/inikep/lzbench)). In browsers, this runs natively while tile encodings run in JavaScript. Analytics formats such as [BtrBlocks](https://www.cs.cit.tum.de/fileadmin/w00cfj/dis/papers/btrblocks.pdf) target the opposite case: fast cloud networks (over 100 Gbit/s networks), where decompression is the bottleneck (CPU-bound).
-- **Tiles are delivered compressed.** [Planetiler](https://github.com/onthegomap/planetiler/blob/main/planetiler-core/src/main/java/com/onthegomap/planetiler/config/PlanetilerConfig.java) and [tippecanoe](https://github.com/felt/tippecanoe#readme) gzip tiles by default, because users want the smallest tiles.
+- **The network is usually the bottleneck, not decompression.** Across the cited German and US operator results, typical mobile download speed is roughly 100 Mbit/s (12 MB/s) . A single CPU core decompresses gzip or brotli at roughly 400 MB/s and zstd at over 1,000 MB/s. In browsers, this runs natively while tile encodings run in JavaScript. Analytics formats such as [BtrBlocks](https://www.cs.cit.tum.de/fileadmin/w00cfj/dis/papers/btrblocks.pdf) target the opposite case: fast cloud networks (>= 100 Gbit/s networks), where decompression is the bottleneck (CPU-bound).
+- **Tiles are delivered compressed.** For example Planetiler and tippecanoe gzip tiles by default, because users want the smallest tiles.
 - **gzip is the baseline.** Every browser decodes gzip and brotli as Content-Encoding, and zstd since Chrome and
   Edge 123, Firefox 126 and Safari 26.3 ([caniuse](https://caniuse.com/zstd)). Clients that decompress tiles
   themselves, such as PMTiles readers, use `DecompressionStream`, which supports only gzip and deflate in every browser
   ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/DecompressionStream/DecompressionStream#browser_compatibility)).
-
 
 
 ## Goals and non-goals
